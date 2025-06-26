@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+<link rel="stylesheet" href="https://js.arcgis.com/4.20/esri/themes/light/main.css">
+<script src="https://js.arcgis.com/4.20/"></script>
+    <style>
+.container{
+    /* border: 2px solid brown; */
+    width: 100%;
+    display: flex;
+    height:400px;
+}
+
+#view{
+            width:75%;
+            height:400px;
+            border: 2px solid brown;
+        }
+.sub-div{
+    width: 25%;
+   /* height: 50px; */
+    border: 1px solid brown;
+    display: flex;
+    flex-direction: column; 
+}
+
+.basemap{
+    /* border: 1px solid blue; */
+
+}
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <div class="sub-div">
+        <div id="sublyrs">
+            <h2>Sublayers</h2>
+        </div>
+        
+        <div class="basemap">
+            <h2>Bmap</h2>
+           <input type="radio" name="map" id="topo">Topo<br>
+           <input type="radio" name="map" id="sat">Satellite<br>
+           <input type="radio" name="map" id="osm">OSM<br>
+           <input type="radio" name="map" id="gray">Gray<br>
+        </div>
+        
+    </div>
+
+    <div id="view"></div>
+     
+</div>
+
+
+  
+    
+
+    <script>
+
+
+var bmap;
+var mapview;
+var layer;
+require(["esri/Map",
+"esri/views/MapView",
+"esri/layers/FeatureLayer",
+"esri/layers/MapImageLayer"
+
+
+    ], 
+(Map,
+MapView,
+FeatureLayer,
+MapImageLayer
+
+) => 
+{ 
+
+// map object 
+bmap=new Map({
+    basemap:"gray"
+});
+
+
+// mapview 
+mapview=new MapView({
+    container:"view",
+    map:bmap,
+    zoom:4,
+    center:[73,24]
+ 
+});
+
+
+// flayer= new FeatureLayer(
+//     {
+// url:"https://services8.arcgis.com/PiQBd34m15DQ47fF/arcgis/rest/services/aust/FeatureServer/2"
+//     }
+// );
+
+// bmap.add(flayer);
+ 
+
+mlayer=new MapImageLayer(
+    {
+        url:"https://sampleserver6.arcgisonline.com/arcgis/rest/services/USA/MapServer"
+    // url:"https://sampleserver6.arcgisonline.com/arcgis/rest/services/PoolPermits/MapServer"
+    
+    }
+);
+
+bmap.add(mlayer);
+
+
+mlayer.when(function()
+{
+mapview.goTo(mlayer.fullExtent);
+// alert(mlayer.sublayers.length);
+let sublyrs=document.getElementById("sublyrs");
+let ulst=document.createElement("ul");
+sublyrs.appendChild(ulst);
+for (i=0;i<mlayer.sublayers.length;i++)
+{
+
+
+let sublayer=mlayer.sublayers.items[i];
+let chk=document.createElement("input");
+chk.type="checkbox";
+chk.checked=true;
+let listitem=document.createElement("li");
+// event 
+chk.addEventListener("click", function()
+{
+    // alert(sublayer.title);
+    sublayer.visible=!sublayer.visible;
+
+})
+
+
+// list items 
+
+//create label
+let lbl=document.createElement("label");
+lbl.textContent=sublayer.title;
+ulst.appendChild(listitem);
+listitem.appendChild(chk);
+listitem.appendChild(lbl);
+
+
+
+}
+
+
+});
+
+
+// finding the length 
+
+// alert(mlayer.sublayers.length);
+
+// basemap event 
+
+
+
+
+
+
+}); // end of main 
+
+</script>
+</body>
+</html>

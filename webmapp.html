@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+<link rel="stylesheet" href="https://js.arcgis.com/4.19/esri/themes/light/main.css">
+<script src="https://js.arcgis.com/4.19/"></script>
+    <style>
+        *{
+            margin: 0px;
+            padding: 0px;
+            box-sizing: border-box;
+        }
+        #view{
+            width:100%;
+            height:70vh;
+            border: 2px solid brown;
+            /* position: relative; */
+           }
+.layer-section{
+    /* background-color: cadetblue; */
+    position: absolute;
+  left: 200px;
+  top: 10px;
+  z-index: 2;
+}
+
+.layer-section label{
+    font-size: 20px;
+    
+}
+.layer-section select{
+    width: 400px;
+    height: 30px;
+    border-radius: 20px;
+    
+}
+#tbl{
+    border: 2px solid brown;
+    height: 30vh;
+}
+
+    </style>
+</head>
+<body>
+  
+  <div class="layer-section">
+<label>Layers</label>    
+<select id="lyr"></select>
+  
+</div>
+  <div id="view"></div>
+  <div id="tbl"></div>
+    
+
+  
+<script>
+var bmap;
+var mapview;
+var layer;
+// var request;
+require(["esri/Map",
+"esri/views/MapView",
+"esri/request",
+"esri/widgets/BasemapGallery",
+"esri/widgets/Expand",
+"esri/widgets/Home",
+"esri/layers/FeatureLayer",
+"esri/widgets/FeatureTable",
+"esri/widgets/Legend"
+
+
+    ], 
+(Map,
+MapView,
+request,
+BasemapGallery,
+Expand,
+Home,
+FeatureLayer,
+FeatureTable,
+Legend
+
+) => 
+{ 
+
+// map object 
+bmap=new Map({
+    basemap:"gray"
+});
+
+
+// mapview 
+mapview=new MapView({
+    container:"view",
+    map:bmap,
+    zoom:4,
+    center:[73,24],
+    popup:{
+        defaultPopupTemplateEnabled:true
+    }
+ 
+});
+
+var home=new Home(
+    {
+        view:mapview
+    }
+);
+mapview.ui.add(home,"top-left");
+
+var bg=new BasemapGallery({
+    view:mapview
+
+});
+// mapview.ui.add(bg,"top-left");
+
+var legend=new Legend(
+    {
+        view:mapview,
+
+    }
+);
+
+mapview.ui.add(legend,"bottom-right");
+
+var bgexpand=new Expand(
+    {
+        view:mapview,
+        content:bg
+    }
+);
+mapview.ui.add(bgexpand,"top-left");
+
+
+// sending the rquest to the server 
+let url ="https://sampleserver6.arcgisonline.com/arcgis/rest/services?f=pjson";
+let options={responseType:"json"};
+
+request(url,options).then(function(response)
+{
+// alert(response.data.currentVersion);
+// alert(response.data.folders.length);
+// alert(response.data.services.length);
+
+let selection=document.getElementById("lyr");
+
+selection.addEventListener("change",function()
+{
+var x = document.getElementById("lyr").selectedIndex;
+var y = document.getElementById("lyr").options;
+// alert("Index: " + y[x].index + " is " + y[x].text);
+var selectedservice=y[x].text;
+console.log(selectedservice);
+
+
+layer=new FeatureLayer(
+    {
+       url:"https://sampleserver6.arcgisonline.com/arcgis/rest/services/"+selectedservice+"/FeatureServer"
+    }
+);
+
+// console.log(layer.url);
+bmap.removeAll();
+bmap.add(layer);
+layer.when(function()
+{
+    mapview.goTo(layer.fullExtent);
+});
+
+// calling 
+createtable();
+
+});
+
+
+
+//  creating table 
+function createtable()
+{
+let tbldiv=document.getElementById("tbl");
+tbldiv.textContent=" ";
+
+    var ftable=new FeatureTable(
+    {
+        view:mapview,
+        layer:layer,
+        container:tbldiv
+    }
+);
+
+}
+
+
+
+
+
+for(i=0;i<response.data.services.length;i++)
+{
+    // alert(response.data.services[i].name);
+
+if (response.data.services[i].type==="FeatureServer")
+{
+let option=document.createElement("option");
+option.textContent=response.data.services[i].name;
+selection.appendChild(option);
+
+}
+
+
+
+}
+
+
+})
+
+
+
+}); // end of main 
+
+</script>
+</body>
+</html>
